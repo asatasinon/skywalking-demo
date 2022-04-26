@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Configuration后面的status，这个用于设置log4j2自身内部的信息输出，可以不设置，当设置成trace时，你会看到log4j2内部各种详细输出-->
+<!--monitorInterval：Log4j能够自动检测修改配置 文件和重新配置本身，设置间隔秒数-->
+<configuration status="WARN" monitorInterval="30" packages="org.apache.skywalking.apm.toolkit.log.log4j.v2.x">
+    <!--日志级别以及优先级排序: off > fatal > error > warn > info > debug > trace > all -->
+
+    <!--变量配置-->
+    <properties>
+        <!-- 格式化输出：%date表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度 %msg：日志消息，%n是换行符-->
+        <!-- %logger{36} 表示 logger 名字最长36个字符 -->
+        <property name="log_pattern" value="[%traceId][%sw_ctx]>>>>%date{hh:mm:ss.sss} [%thread] %-5level %logger{36} - %msg%n" />
+        <!-- 定义日志存储的路径 -->
+        <property name="file_path" value="/users/raven/codegit/skywalking-demo2/logs/second-node" />
+        <property name="file_name" value="second-node" />
+    </properties>
+
+    <appenders>
+
+        <console name="console" target="system_out">
+            <!--输出日志的格式-->
+            <patternlayout pattern="${log_pattern}"/>
+            <!--控制台只输出level及其以上级别的信息（onmatch），其他的直接拒绝（onmismatch）-->
+            <thresholdfilter level="info" onmatch="accept" onmismatch="deny"/>
+        </console>
+
+        <!--文件会打印出所有信息，这个log每次运行程序会自动清空，由append属性决定，适合临时测试用-->
+        <file name="filelog" filename="${file_path}/test.log" append="false">
+            <patternlayout pattern="${log_pattern}"/>
+        </file>
+
+        <!-- 这个会打印出所有的info及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
+        <rollingfile name="rollingfileinfo" filename="${file_path}/info.log" filepattern="${file_path}/${file_name}-info-%d{yyyy-mm-dd}_%i.log.gz">
+            <!--控制台只输出level及以上级别的信息（onmatch），其他的直接拒绝（onmismatch）-->
+            <thresholdfilter level="info" onmatch="accept" onmismatch="deny"/>
+            <patternlayout pattern="${log_pattern}"/>
+            <policies>
+                <!--interval属性用来指定多久滚动一次，默认是1 hour-->
+                <timebasedtriggeringpolicy interval="1"/>
+                <sizebasedtriggeringpolicy size="10mb"/>
+            </policies>
+            <!-- defaultrolloverstrategy属性如不设置，则默认为最多同一文件夹下7个文件开始覆盖-->
+            <defaultrolloverstrategy max="15"/>
+        </rollingfile>
+
+        <!-- 这个会打印出所有的warn及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
+        <rollingfile name="rollingfilewarn" filename="${file_path}/warn.log" filepattern="${file_path}/${file_name}-warn-%d{yyyy-mm-dd}_%i.log.gz">
+            <!--控制台只输出level及以上级别的信息（onmatch），其他的直接拒绝（onmismatch）-->
+            <thresholdfilter level="warn" onmatch="accept" onmismatch="deny"/>
+            <patternlayout pattern="${log_pattern}"/>
+            <policies>
+                <!--interval属性用来指定多久滚动一次，默认是1 hour-->
+                <timebasedtriggeringpolicy interval="1"/>
+                <sizebasedtriggeringpolicy size="10mb"/>
+            </policies>
+            <!-- defaultrolloverstrategy属性如不设置，则默认为最多同一文件夹下7个文件开始覆盖-->
+            <defaultrolloverstrategy max="15"/>
+        </rollingfile>
+
+        <!-- 这个会打印出所有的error及以下级别的信息，每次大小超过size，则这size大小的日志会自动存入按年份-月份建立的文件夹下面并进行压缩，作为存档-->
+        <rollingfile name="rollingfileerror" filename="${file_path}/error.log" filepattern="${file_path}/${file_name}-error-%d{yyyy-mm-dd}_%i.log.gz">
+            <!--控制台只输出level及以上级别的信息（onmatch），其他的直接拒绝（onmismatch）-->
+            <thresholdfilter level="error" onmatch="accept" onmismatch="deny"/>
+            <patternlayout pattern="${log_pattern}"/>
+            <policies>
+                <!--interval属性用来指定多久滚动一次，默认是1 hour-->
+                <timebasedtriggeringpolicy interval="1"/>
+                <sizebasedtriggeringpolicy size="10mb"/>
+            </policies>
+            <!-- defaultrolloverstrategy属性如不设置，则默认为最多同一文件夹下7个文件开始覆盖-->
+            <defaultrolloverstrategy max="15"/>
+        </rollingfile>
+
+
+        <grpclogclientappender name="grpc-log">
+            <patternlayout pattern="%d{hh:mm:ss.sss} [%t] %-5level %logger{36} - %msg%n"/>
+        </grpclogclientappender>
+
+
+    </appenders>
+
+    <!--logger节点用来单独指定日志的形式，比如要为指定包下的class指定不同的日志级别等。-->
+    <!--然后定义loggers，只有定义了logger并引入的appender，appender才会生效-->
+    <loggers>
+
+        <!--过滤掉spring和mybatis的一些无用的debug信息-->
+        <logger name="org.mybatis" level="info" additivity="false">
+            <appenderref ref="console"/>
+        </logger>
+        <!--监控系统信息-->
+        <!--若是additivity设为false，则 子logger 只会在自己的appender里输出，而不会在 父logger 的appender里输出。-->
+        <logger name="org.springframework" level="info" additivity="false">
+            <appenderref ref="console"/>
+        </logger>
+
+        <root level="info">
+            <appender-ref ref="console"/>
+            <appender-ref ref="filelog"/>
+            <appender-ref ref="rollingfileinfo"/>
+            <appender-ref ref="rollingfilewarn"/>
+            <appender-ref ref="rollingfileerror"/>
+            <appender-ref ref="grpc-log"/>
+        </root>
+    </loggers>
+
+</configuration>
