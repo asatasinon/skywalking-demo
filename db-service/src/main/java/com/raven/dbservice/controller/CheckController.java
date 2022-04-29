@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class CheckController {
 
-    private static Logger logger = LogManager.getLogger("CheckController");
+    private static Logger logger = LogManager.getLogger(CheckController.class);
 
     @GetMapping("check")
     public String check(@RequestParam String userName) {
@@ -33,5 +33,11 @@ public class CheckController {
 
         return  userName + " exists.";
 
+    }
+
+
+    @GetMapping("userInfo")
+    public String getUserInfo(@RequestParam String userName) {
+        return  userName + ": getUserInfo success";
     }
 }

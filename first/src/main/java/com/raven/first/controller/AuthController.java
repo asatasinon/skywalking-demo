@@ -38,6 +38,10 @@ public class AuthController {
 
         String result = restTemplate.getForObject("http://localhost:9092/login?userName=" + userName, String.class);
         logger.info(result);
+
+
+        String menuInfo = restTemplate.getForObject("http://localhost:9093/menu?userName=" + userName, String.class);
+        logger.info(menuInfo);
         return result;
 
     }

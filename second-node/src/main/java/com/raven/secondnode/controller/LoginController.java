@@ -27,7 +27,14 @@ public class LoginController {
         if (result.startsWith("500,")) {
             return userName + " login failed.";
         }
+
+        String userInfo = restTemplate.getForObject("http://localhost:9093/userInfo?userName=" + userName, String.class);
+        logger.info(userInfo);
+
+
         return userName + " login success.";
 
     }
+
+
 }
